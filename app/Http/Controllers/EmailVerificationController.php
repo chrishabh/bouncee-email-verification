@@ -80,7 +80,7 @@ class EmailVerificationController extends Controller
 
         // Perform SMTP handshake
         $responses = [];
-        stream_set_timeout($connection, 10);
+        stream_set_timeout($connection, 20);
         fwrite($connection, "HELO " . 'ipl-wages.com' . "\r\n");
 
         // Specify the sender email
@@ -88,8 +88,8 @@ class EmailVerificationController extends Controller
 
         // Specify the recipient email
         fwrite($connection, "RCPT TO: <$email>\r\n");
+        usleep(5000000);
         $response = fgets($connection, 1024);
-        usleep(20000000);
         $responses[] = $response;
 
         // Close the connection
