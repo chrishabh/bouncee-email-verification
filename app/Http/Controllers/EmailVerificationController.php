@@ -81,16 +81,23 @@ class EmailVerificationController extends Controller
         // Perform SMTP handshake
         $responses = [];
         stream_set_timeout($connection, 20);
-        fwrite($connection, "HELO " . 'ipl-wages.com' . "\r\n");
+
+        // Read the initial 220 response
+        $responses[] = fgets($connection, 1024);
+
+        fwrite($connection, "EHLO ipl-wages.com\r\n");
+        usleep(2000000);
+        $responses[] = fgets($connection, 1024);
 
         // Specify the sender email
         fwrite($connection, "MAIL FROM: <ch.rishabh8527@gmail.com>\r\n");
+        usleep(2000000);
+        $responses[] = fgets($connection, 1024);
 
         // Specify the recipient email
         fwrite($connection, "RCPT TO: <$email>\r\n");
-        usleep(5000000);
-        $response = fgets($connection, 1024);
-        $responses[] = $response;
+        usleep(2000000);
+        $responses[] = fgets($connection, 1024); 
 
         // Close the connection
         fwrite($connection, "QUIT\r\n");
