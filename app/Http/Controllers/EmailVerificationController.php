@@ -80,26 +80,29 @@ class EmailVerificationController extends Controller
 
         // Perform SMTP handshake
         $responses = [];
-        stream_set_timeout($connection, 30);
+        stream_set_timeout($connection, 10);
 
         // Read the initial 220 response
         $responses[] = fgets($connection, 1024);
 
+        // Send EHLO (instead of HELO)
         fwrite($connection, "EHLO ipl-wages.com\r\n");
-        usleep(2000000);
-        $responses[] = fgets($connection, 1024);
+        $responses[] = fgets($connection, 1024); // Read EHLO response
 
-        usleep(10000000);
-        // Specify the sender email
+        // Read additional server responses (some servers send multiple 250 responses)
+        while (($line = fgets($connection, 1024)) !== false) {
+            $responses[] = trim($line);
+            if (strpos($line, '250 ') === 0) break; // Stop when last 250 response is received
+        }
+
+        // Send MAIL FROM
         fwrite($connection, "MAIL FROM: <ch.rishabh8527@gmail.com>\r\n");
-        usleep(2000000);
-        $responses[] = fgets($connection, 1024);
+        $responses[] = fgets($connection, 1024); // Read MAIL FROM response
 
-        usleep(2000000);
-        // Specify the recipient email
+        // Send RCPT TO
         fwrite($connection, "RCPT TO: <$email>\r\n");
-        usleep(2000000);
-        $responses[] = fgets($connection, 1024); 
+        $responses[] = fgets($connection, 1024); // Read RCPT TO response
+
 
         // Close the connection
         fwrite($connection, "QUIT\r\n");
