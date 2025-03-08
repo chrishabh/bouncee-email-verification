@@ -35,6 +35,7 @@ class EmailVerificationController extends Controller
         return response()->json([
             'email' => $email,
             'valid' => $smtpResponse['valid'],
+            'mx-record' => $mxServer,
             'reason' => $smtpResponse['reason']
         ]);
     }
