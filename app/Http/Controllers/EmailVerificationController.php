@@ -56,6 +56,14 @@ class EmailVerificationController extends Controller
                 return ['valid' => false, 'reason' => 'SMTP handshake failed'];
             }
 
+            if (strpos($output, "450") === false) {
+                return ['valid' => false, 'reason' => 'unknown'];
+            }
+
+            if (strpos($output, "550") === false) {
+                return ['valid' => false, 'reason' => 'Bounce'];
+            }
+
             return ['valid' => true, 'reason' => 'Email exists'];
         } catch (Exception $e) {
             return ['valid' => false, 'reason' => 'Error connecting to SMTP server'];
