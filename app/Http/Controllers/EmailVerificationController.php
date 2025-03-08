@@ -73,13 +73,14 @@ class EmailVerificationController extends Controller
     private function telnetsmtpHandshake($email, $mxServer)
     {
         
-        $connection = fsockopen($mxServer, 25, $errno, $errstr, 60);
+        $connection = fsockopen($mxServer, 25, $errno, $errstr, 10);
         if (!$connection) {
             return "Failed to connect to SMTP server: $errstr ($errno)";
         }
 
         // Perform SMTP handshake
         $responses = [];
+        stream_set_timeout($connection, 10);
         fwrite($connection, "HELO " . 'ipl-wages.com' . "\r\n");
 
         // Specify the sender email
@@ -87,7 +88,7 @@ class EmailVerificationController extends Controller
 
         // Specify the recipient email
         fwrite($connection, "RCPT TO: <$email>\r\n");
-        $response = fgets($connection, 10240);
+        $response = fgets($connection, 1024);
         usleep(20000000);
         $responses[] = $response;
 
