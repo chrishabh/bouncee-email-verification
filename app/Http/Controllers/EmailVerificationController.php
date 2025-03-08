@@ -30,13 +30,12 @@ class EmailVerificationController extends Controller
         $mxServer = $mxRecords[0]['target'];
 
         // Perform SMTP Handshake
-        $smtpResponse = $this->smtpHandshake($email, $mxServer);
+        $smtpResponse = $this->telnetsmtpHandshake($email, $mxServer);
 
         return response()->json([
             'email' => $email,
-            'valid' => $smtpResponse['valid'],
             'mx-record' => $mxServer,
-            'reason' => $smtpResponse['reason']
+            'reason' => $smtpResponse
         ]);
     }
 
@@ -69,5 +68,43 @@ class EmailVerificationController extends Controller
         } catch (Exception $e) {
             return ['valid' => false, 'reason' => 'Error connecting to SMTP server'];
         }
+    }
+
+    private function telnetsmtpHandshake($email, $mxServer)
+    {
+        
+        $connection = fsockopen($mxServer, 25, $errno, $errstr, 60);
+        if (!$connection) {
+            return "Failed to connect to SMTP server: $errstr ($errno)";
+        }
+
+        // Perform SMTP handshake
+        $responses = [];
+        fwrite($connection, "HELO " . 'ipl-wages.com' . "\r\n");
+        $responses[] = fgets($connection, 1024);
+
+        // Specify the sender email
+        fwrite($connection, "MAIL FROM: <ch.rishabh8527@gmail.com>\r\n");
+        $responses[] = fgets($connection, 1024);
+
+        // Specify the recipient email
+        fwrite($connection, "RCPT TO: <$email>\r\n");
+        $response = fgets($connection, 1024);
+        $responses[] = $response;
+
+        // Close the connection
+        fwrite($connection, "QUIT\r\n");
+        fclose($connection);
+
+        return $responses;
+
+        // Check the response for recipient validation
+        if (strpos($response, '250') !== false) {
+            return "Email address is valid.";
+        } elseif (strpos($response, '550') !== false) {
+            return "Email address is invalid.";
+        }
+
+        return "Unable to verify the email address.";
     }
 }
