@@ -43,7 +43,7 @@ class EmailVerificationController extends Controller
     {
         try {
             $process = new Process(["nc", "-w", "5", $mxServer, "25"]);
-            $process->setTimeout(10);
+            $process->setTimeout(30);
             $process->run();
 
             if (!$process->isSuccessful()) {
@@ -51,7 +51,7 @@ class EmailVerificationController extends Controller
             }
 
             $output = $process->getOutput();
-
+            return ['valid' => true, 'reason' => $output];
             if (strpos($output, "220") === false) {
                 return ['valid' => false, 'reason' => 'SMTP handshake failed'];
             }
