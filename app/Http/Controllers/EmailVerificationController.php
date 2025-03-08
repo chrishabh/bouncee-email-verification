@@ -90,6 +90,7 @@ class EmailVerificationController extends Controller
         // Specify the recipient email
         fwrite($connection, "RCPT TO: <$email>\r\n");
         $response = fgets($connection, 10240);
+        usleep(500000);
         $responses[] = $response;
 
         // Close the connection
