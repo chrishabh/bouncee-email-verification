@@ -112,10 +112,12 @@ class EmailVerificationController extends Controller
         // **Determine email status**
         if (strpos($rcptResponse, '250') !== false) {
             return ["status" => "Deliverable", "data" => $responses];
-        } elseif (strpos($rcptResponse, '550') !== false) {
+        } elseif (strpos($rcptResponse, '550-5.1.1') !== false) {
+            return ["status" => "undeliverable", "data" => $responses];
+        } elseif (strpos($rcptResponse, '550 5.7.1') !== false) {
             return ["status" => "bounce", "data" => $responses];
         } elseif (strpos($rcptResponse, '450') !== false || strpos($rcptResponse, '451') !== false || strpos($rcptResponse, '452') !== false) {
-            return ["status" => "soft_bounce", "data" => $responses];
+            return ["status" => "unknown", "data" => $responses];
         } elseif (strpos($rcptResponse, '421') !== false) {
             return ["status" => "undeliverable", "data" => $responses];
         } elseif (preg_match('/250.*catch/i', implode(" ", $responses))) {
