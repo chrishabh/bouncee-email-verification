@@ -24,7 +24,7 @@ class EmailVerificationController extends Controller
         // Get MX records
         $mxRecords = dns_get_record($domain, DNS_MX);
         if (!$mxRecords) {
-            return response()->json(['email' => $email, 'valid' => false, 'reason' => 'No MX records found'], 400);
+            return response()->json(['email' => $email, 'status' => 'undeliverable', 'reason' => 'No MX records found'], 400);
         }
 
         $mxServer = $mxRecords[0]['target'];
@@ -35,7 +35,8 @@ class EmailVerificationController extends Controller
         return response()->json([
             'email' => $email,
             'mx-record' => $mxServer,
-            'reason' => $smtpResponse
+            'status' => $smtpResponse['status'],
+            'reason' => $smtpResponse['data']
         ]);
     }
 
@@ -101,22 +102,26 @@ class EmailVerificationController extends Controller
 
         // Send RCPT TO
         fwrite($connection, "RCPT TO: <$email>\r\n");
-        $responses[] = fgets($connection, 1024); // Read RCPT TO response
+        $responses[] = $rcptResponse = trim(fgets($connection, 1024)); // Read RCPT TO response
 
 
         // Close the connection
         fwrite($connection, "QUIT\r\n");
         fclose($connection);
 
-        return $responses;
-
-        // Check the response for recipient validation
-        if (strpos($response, '250') !== false) {
-            return "Email address is valid.";
-        } elseif (strpos($response, '550') !== false) {
-            return "Email address is invalid.";
+        // **Determine email status**
+        if (strpos($rcptResponse, '250') !== false) {
+            return ["status" => "valid", "data" => $responses];
+        } elseif (strpos($rcptResponse, '550') !== false) {
+            return ["status" => "bounce", "data" => $responses];
+        } elseif (strpos($rcptResponse, '450') !== false || strpos($rcptResponse, '451') !== false || strpos($rcptResponse, '452') !== false) {
+            return ["status" => "soft_bounce", "data" => $responses];
+        } elseif (strpos($rcptResponse, '421') !== false) {
+            return ["status" => "undeliverable", "data" => $responses];
+        } elseif (preg_match('/250.*catch/i', implode(" ", $responses))) {
+            return ["status" => "accepted_all", "data" => $responses];
+        } else {
+            return ["status" => "unknown", "data" => $responses];
         }
-
-        return "Unable to verify the email address.";
     }
 }
