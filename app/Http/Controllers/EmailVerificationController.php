@@ -111,7 +111,7 @@ class EmailVerificationController extends Controller
 
         // **Determine email status**
         if (strpos($rcptResponse, '250') !== false) {
-            return ["status" => "Deliverable", "data" => $responses];
+            return ["status" => "deliverable", "data" => $responses];
         } elseif (strpos($rcptResponse, '550-5.1.1') !== false) {
             return ["status" => "undeliverable", "data" => $responses];
         } elseif (strpos($rcptResponse, '550 5.7.1') !== false || strpos($rcptResponse, '550 5.4.1') !== false) {
