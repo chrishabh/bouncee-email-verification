@@ -89,17 +89,11 @@ class EmailVerificationController extends Controller
             $fromEmail = env('SMTP_MAIL_FROM_ADDRESS');
             fwrite($connection, "MAIL FROM: <$fromEmail>\r\n");
             $mailFromResponse = fgets($connection, 1024);
-            if (!$mailFromResponse || strpos($mailFromResponse, '250') !== 0) {
-                throw new Exception("MAIL FROM command failed: " . trim($mailFromResponse));
-            }
             $responses[] = trim($mailFromResponse);
         
             // Send RCPT TO
             fwrite($connection, "RCPT TO: <$email>\r\n");
             $rcptResponse = fgets($connection, 1024);
-            if (!$rcptResponse || strpos($rcptResponse, '250') !== 0) {
-                throw new Exception("RCPT TO command failed: " . trim($rcptResponse));
-            }
             $responses[] = trim($rcptResponse);
         
             // Send QUIT
