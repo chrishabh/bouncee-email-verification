@@ -20,4 +20,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
-Route::get('/verify-email', [EmailVerificationController::class, 'verify']);
+Route::middleware(['verification.api'])->group(function () {
+    Route::get('/verify-email', [EmailVerificationController::class, 'verify']);
+});
