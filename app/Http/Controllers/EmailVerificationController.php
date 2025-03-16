@@ -14,7 +14,7 @@ class EmailVerificationController extends Controller
         $email = $request->query('email');
 
         If(!$email){
-            return response()->json(['message' => 'Email is required'], 1400);
+            return response()->json(['message' => 'Email is required'], 401);
         }
 
         // Validate email format
@@ -47,7 +47,7 @@ class EmailVerificationController extends Controller
         }else{
             return response()->json([
                'message' => $smtpResponse
-            ],1400);
+            ],401);
         }
     }
 
