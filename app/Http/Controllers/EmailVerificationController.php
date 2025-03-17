@@ -39,9 +39,6 @@ class EmailVerificationController extends Controller
         // Perform SMTP Handshake
         $smtpResponse = $this->telnetsmtpHandshake($email, $mxServer);
 
-        print_r($smtpResponse);
-        die();
-
         if(isset($smtpResponse['status']) && isset($smtpResponse['data'])) {
             return response()->json([
                 'email' => $email,
