@@ -30,11 +30,17 @@ class EmailVerificationController extends Controller
         if (!$mxRecords) {
             return response()->json(['email' => $email, 'status' => 'undeliverable', 'reason' => 'No MX records found'], 200);
         }
-
+        // Use the highest priority MX server
+        usort($mxRecords, function ($a, $b) {
+            return $a['pri'] - $b['pri'];
+        });
         $mxServer = $mxRecords[0]['target'];
 
         // Perform SMTP Handshake
         $smtpResponse = $this->telnetsmtpHandshake($email, $mxServer);
+
+        print_r($smtpResponse);
+        die();
 
         if(isset($smtpResponse['status']) && isset($smtpResponse['data'])) {
             return response()->json([
