@@ -26,10 +26,16 @@ class EmailVerificationController extends Controller
         $domain = substr(strrchr($email, "@"), 1);
 
         // Get MX records
-        $mxRecords = dns_get_record($domain, DNS_MX);
+        try{
+            $mxRecords = dns_get_record($domain, DNS_MX);
+        }catch(Exception $e){
+            return response()->json(['email' => $email, 'status' => 'undeliverable','message' => $e->getMessage()], 200);
+        }
+
         if (!$mxRecords) {
             return response()->json(['email' => $email, 'status' => 'undeliverable', 'reason' => 'No MX records found'], 200);
         }
+        
         // Use the highest priority MX server
         usort($mxRecords, function ($a, $b) {
             return $a['pri'] - $b['pri'];
