@@ -123,7 +123,8 @@ class EmailVerificationController extends Controller
             } elseif (preg_match('/250.*catch/i', implode(" ", $responses))) {
                 return ["status" => "accepted_all", "data" => $responses];
             } else {
-                
+                print_r($responses);
+                die();
             }
         } catch (Exception $e) {
             $responses[] = $e->getMessage();
