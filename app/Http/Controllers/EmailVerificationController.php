@@ -74,9 +74,9 @@ class EmailVerificationController extends Controller
         
             // Read the initial 220 response
             $initialResponse = fgets($connection, 1024);
-            if (!$initialResponse || strpos($initialResponse, '220') !== 0) {
-                throw new Exception("Unexpected SMTP response: " . trim($initialResponse));
-            }
+            // if (!$initialResponse || strpos($initialResponse, '220') !== 0) {
+            //     throw new Exception("Unexpected SMTP response: " . trim($initialResponse));
+            // }
             $responses[] = trim($initialResponse);
         
             // Send EHLO
