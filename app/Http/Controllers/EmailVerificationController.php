@@ -124,7 +124,8 @@ class EmailVerificationController extends Controller
                 return ["status" => "accepted_all", "data" => $responses];
             }
             else {
-              
+                print_r($responses);
+                die();
             }
         } catch (Exception $e) {
             $responses[] = $e->getMessage();
