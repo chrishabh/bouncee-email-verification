@@ -79,6 +79,10 @@ class EmailVerificationController extends Controller
             while ($attempt < $maxAttempts) {
                 $initialResponse = fgets($connection, 1024);
                 if ($initialResponse && strpos($initialResponse, '220') === 0) {
+                    while (($initialLine = fgets($connection, 1024)) !== false) {
+                        $responses[] = trim($initialLine);
+                        if (strpos($initialLine, '220 ') === 0) break; // Stop when the last 250 response is received
+                    }
                     break;
                 }
                 usleep(500000); // Wait for 0.5 seconds before retrying
