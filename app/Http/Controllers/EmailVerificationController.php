@@ -123,7 +123,7 @@ class EmailVerificationController extends Controller
             // $attempt = 0;
 
             // while ($attempt < $maxAttempts) {
-            //     $rcptResponse = fgets($connection, 1024);
+                 $rcptResponse = fgets($connection, 1024);
             //     if ($rcptResponse && strpos($rcptResponse, '250') !== false || strpos($rcptResponse, '550') !== false || strpos($rcptResponse, '450') !== false || strpos($rcptResponse, '451') !== false || strpos($rcptResponse, '452') !== false || strpos($rcptResponse, '421') !== false || strpos($rcptResponse, '550-5.1.1') !== false || strpos($rcptResponse, '550 5.1.1') !== false || strpos($rcptResponse, '550-5.2.1') !== false || strpos($rcptResponse, '550 #5.1.0') !== false || strpos($rcptResponse, '550 5.7.1') !== false || strpos($rcptResponse, '550 5.4.1') !== false) {
             //         break;
 
