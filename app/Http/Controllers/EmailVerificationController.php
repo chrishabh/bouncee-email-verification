@@ -72,11 +72,23 @@ class EmailVerificationController extends Controller
             $responses = [];
             stream_set_timeout($connection, 10);
         
-            // Read the initial 220 response
-            $initialResponse = fgets($connection, 1024);
-            // if (!$initialResponse || strpos($initialResponse, '220') !== 0) {
-            //     throw new Exception("Unexpected SMTP response: " . trim($initialResponse));
-            // }
+            $initialResponse = '';
+            $maxAttempts = 10; // Maximum attempts to wait for 220 response
+            $attempt = 0;
+
+            while ($attempt < $maxAttempts) {
+                $initialResponse = fgets($connection, 1024);
+                if ($initialResponse && strpos($initialResponse, '220') === 0) {
+                    break;
+                }
+                usleep(500000); // Wait for 0.5 seconds before retrying
+                $attempt++;
+            }
+
+            if (!$initialResponse || strpos($initialResponse, '220') !== 0) {
+                throw new Exception("Unexpected or no SMTP response: " . trim($initialResponse));
+            }
+
             $responses[] = trim($initialResponse);
         
             // Send EHLO
