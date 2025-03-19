@@ -118,7 +118,19 @@ class EmailVerificationController extends Controller
         
             // Send RCPT TO
             fwrite($connection, "RCPT TO: <$email>\r\n");
-            $rcptResponse = fgets($connection, 1024);
+            $rcptResponse = '';
+            $maxAttempts = 5; // Maximum attempts to wait for 220 response
+            $attempt = 0;
+
+            while ($attempt < $maxAttempts) {
+                $rcptResponse = fgets($connection, 1024);
+                if ($rcptResponse && $rcptResponse != ""){
+                    break;
+                }
+                usleep(500000); // Wait for 0.5 seconds before retrying
+                $attempt++;
+            }
+
             $responses[] = trim($rcptResponse);
         
             // Send QUIT
