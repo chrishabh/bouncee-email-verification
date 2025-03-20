@@ -113,7 +113,6 @@ class EmailVerificationController extends Controller
             fwrite($connection, "MAIL FROM: <$fromEmail>\r\n");
             $mailFromResponse = fgets($connection, 1024);
             $responses[] = trim($mailFromResponse);
-            print_r($responses); die;
 
             // Send RCPT TO
             fwrite($connection, "RCPT TO: <$email>\r\n");
@@ -131,6 +130,8 @@ class EmailVerificationController extends Controller
             // }
 
             $responses[] = trim($rcptResponse);
+            print_r($responses); die;
+
             // Send QUIT
             fwrite($connection, "QUIT\r\n");
             fclose($connection);
