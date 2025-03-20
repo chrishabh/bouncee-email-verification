@@ -130,7 +130,6 @@ class EmailVerificationController extends Controller
             // }
 
             $responses[] = trim($rcptResponse);
-            print_r($responses); die;
 
             // Send QUIT
             fwrite($connection, "QUIT\r\n");
