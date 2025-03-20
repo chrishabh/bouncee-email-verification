@@ -87,7 +87,7 @@ class EmailVerificationController extends Controller
                 }
                 $attempt++;
             }
-            print_r($attempt); die;
+            print_r($attempt); print_r($responses); die;
             if (!$initialResponse || strpos($initialResponse, '220') !== 0) {
                 throw new Exception("Unexpected or no SMTP response: " . trim($initialResponse));
             }
