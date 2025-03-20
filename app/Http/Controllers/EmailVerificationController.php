@@ -70,7 +70,7 @@ class EmailVerificationController extends Controller
             }
         
             $responses = [];
-            stream_set_timeout($connection, 20);
+            stream_set_timeout($connection, 10);
         
             $initialResponse = '';
             $maxAttempts = 10; // Maximum attempts to wait for 220 response
