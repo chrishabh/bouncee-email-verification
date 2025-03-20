@@ -87,7 +87,7 @@ class EmailVerificationController extends Controller
                 }
                 $attempt++;
             }
-            print_r($attempt); print_r($responses); die;
+  
             if (!$initialResponse || strpos($initialResponse, '220') !== 0) {
                 throw new Exception("Unexpected or no SMTP response: " . trim($initialResponse));
             }
@@ -108,7 +108,7 @@ class EmailVerificationController extends Controller
                 $responses[] = trim($line);
                 if (strpos($line, '250 ') === 0) break; // Stop when the last 250 response is received
             }
-        
+            print_r($responses); die;
             // Send MAIL FROM
             $fromEmail = env('SMTP_MAIL_FROM_ADDRESS');
             fwrite($connection, "MAIL FROM: <$fromEmail>\r\n");
