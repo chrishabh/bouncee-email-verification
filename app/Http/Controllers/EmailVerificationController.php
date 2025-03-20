@@ -70,7 +70,7 @@ class EmailVerificationController extends Controller
             }
         
             $responses = [];
-            stream_set_timeout($connection, 10);
+            stream_set_timeout($connection, 20);
         
             $initialResponse = '';
             $maxAttempts = 10; // Maximum attempts to wait for 220 response
@@ -118,18 +118,18 @@ class EmailVerificationController extends Controller
         
             // Send RCPT TO
             fwrite($connection, "RCPT TO: <$email>\r\n");
-            // $rcptResponse = '';
-            // $maxAttempts = 10; // Maximum attempts to wait for 220 response
-            // $attempt = 0;
+            $rcptResponse = '';
+            $maxAttempts = 10; // Maximum attempts to wait for 220 response
+            $attempt = 0;
 
-            // while ($attempt < $maxAttempts) {
+            while ($attempt < $maxAttempts) {
                  $rcptResponse = fgets($connection, 1024);
-            //     if ($rcptResponse && strpos($rcptResponse, '250') !== false || strpos($rcptResponse, '550') !== false || strpos($rcptResponse, '450') !== false || strpos($rcptResponse, '451') !== false || strpos($rcptResponse, '452') !== false || strpos($rcptResponse, '421') !== false || strpos($rcptResponse, '550-5.1.1') !== false || strpos($rcptResponse, '550 5.1.1') !== false || strpos($rcptResponse, '550-5.2.1') !== false || strpos($rcptResponse, '550 #5.1.0') !== false || strpos($rcptResponse, '550 5.7.1') !== false || strpos($rcptResponse, '550 5.4.1') !== false) {
-            //         break;
+                if ($rcptResponse && strpos($rcptResponse, '250') !== false || strpos($rcptResponse, '550') !== false || strpos($rcptResponse, '450') !== false || strpos($rcptResponse, '451') !== false || strpos($rcptResponse, '452') !== false || strpos($rcptResponse, '421') !== false || strpos($rcptResponse, '550-5.1.1') !== false || strpos($rcptResponse, '550 5.1.1') !== false || strpos($rcptResponse, '550-5.2.1') !== false || strpos($rcptResponse, '550 #5.1.0') !== false || strpos($rcptResponse, '550 5.7.1') !== false || strpos($rcptResponse, '550 5.4.1') !== false) {
+                    break;
 
-            //     }
-            //     $attempt++;
-            // }
+                }
+                $attempt++;
+            }
 
             $responses[] = trim($rcptResponse);
         
