@@ -85,7 +85,6 @@ class EmailVerificationController extends Controller
                     }
                     break;
                 }
-                usleep(500000); // Wait for 0.5 seconds before retrying
                 $attempt++;
             }
 
