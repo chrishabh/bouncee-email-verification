@@ -108,7 +108,6 @@ class EmailVerificationController extends Controller
                 $responses[] = trim($line);
                 if (strpos($line, '250 ') === 0) break; // Stop when the last 250 response is received
             }
-            print_r($responses); die;
             // Send MAIL FROM
             $fromEmail = env('SMTP_MAIL_FROM_ADDRESS');
             fwrite($connection, "MAIL FROM: <$fromEmail>\r\n");
@@ -131,7 +130,7 @@ class EmailVerificationController extends Controller
             // }
 
             $responses[] = trim($rcptResponse);
-        
+            print_r($responses); die;
             // Send QUIT
             fwrite($connection, "QUIT\r\n");
             fclose($connection);
