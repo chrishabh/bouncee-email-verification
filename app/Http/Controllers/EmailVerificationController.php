@@ -72,25 +72,25 @@ class EmailVerificationController extends Controller
             $responses = [];
             stream_set_timeout($connection, 10);
         
-            $initialResponse = '';
-            $maxAttempts = 10; // Maximum attempts to wait for 220 response
-            $attempt = 0;
+            // $initialResponse = '';
+            // $maxAttempts = 10; // Maximum attempts to wait for 220 response
+            // $attempt = 0;
 
-            while ($attempt < $maxAttempts) {
+            // while ($attempt < $maxAttempts) {
                 $initialResponse = fgets($connection, 1024);
-                if ($initialResponse && strpos($initialResponse, '220') === 0) {
-                    while (($initialLine = fgets($connection, 1024)) !== false) {
-                        $responses[] = trim($initialLine);
-                        if (strpos($initialLine, '220 ') === 0) break; // Stop when the last 250 response is received
-                    }
-                    break;
-                }
-                $attempt++;
-            }
+            //     if ($initialResponse && strpos($initialResponse, '220') === 0) {
+            //         while (($initialLine = fgets($connection, 1024)) !== false) {
+            //             $responses[] = trim($initialLine);
+            //             if (strpos($initialLine, '220 ') === 0) break; // Stop when the last 250 response is received
+            //         }
+            //         break;
+            //     }
+            //     $attempt++;
+            // }
   
-            if (!$initialResponse || strpos($initialResponse, '220') !== 0) {
-                throw new Exception("Unexpected or no SMTP response: " . trim($initialResponse));
-            }
+            // if (!$initialResponse || strpos($initialResponse, '220') !== 0) {
+            //     throw new Exception("Unexpected or no SMTP response: " . trim($initialResponse));
+            // }
 
             $responses[] = trim($initialResponse);
         
@@ -116,9 +116,9 @@ class EmailVerificationController extends Controller
 
             // Send RCPT TO
             fwrite($connection, "RCPT TO: <$email>\r\n");
-            $rcptResponse = '';
-            $maxAttempts = 10; // Maximum attempts to wait for 220 response
-            $attempt = 0;
+            // $rcptResponse = '';
+            // $maxAttempts = 10; // Maximum attempts to wait for 220 response
+            // $attempt = 0;
 
             // while ($attempt < $maxAttempts) {
                  $rcptResponse = fgets($connection, 1024);
