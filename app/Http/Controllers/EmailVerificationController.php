@@ -43,7 +43,7 @@ class EmailVerificationController extends Controller
         $mxServer = $mxRecords[0]['target'];
 
         // Perform SMTP Handshake
-        $smtpResponse = $this->telnetsmtpHandshake($email, $mxServer);
+        $smtpResponse = $this->telnetsmtpHandshake($email, $mxServer, $domain);
 
         if(isset($smtpResponse['status']) && isset($smtpResponse['data'])) {
             return response()->json([
@@ -60,7 +60,7 @@ class EmailVerificationController extends Controller
         }
     }
 
-    private function telnetsmtpHandshake($email, $mxServer)
+    private function telnetsmtpHandshake($email, $mxServer, $domain)
     {
         try {
             $connection = @fsockopen($mxServer, 25, $errno, $errstr, 10);
@@ -128,12 +128,25 @@ class EmailVerificationController extends Controller
             //     }
             //     $attempt++;
             // }
-
+            $acceptFlag = false;
             $responses[] = trim($rcptResponse);
+
+            if (strpos($rcptResponse, '250') !== false) {
+                $acceptEmail = 'example@'.$domain;
+                fwrite($connection, "RCPT TO: <$acceptEmail>\r\n");
+                $acceptResponse = fgets($connection, 1024);
+                $responses[] = trim($acceptResponse);
+                $acceptFlag = true;
+            }
+
 
             // Send QUIT
             fwrite($connection, "QUIT\r\n");
             fclose($connection);
+
+            if($acceptFlag && strpos($acceptResponse, '250') !== false){
+                return ["status" => "accepted_all", "data" => $responses];
+            }
         
             // **Determine email status**
             if (strpos($rcptResponse, '250') !== false) {
@@ -150,7 +163,7 @@ class EmailVerificationController extends Controller
                 return ["status" => "accepted_all", "data" => $responses];
             }
             else {
-                return ["status" => "unreachable", "data" => $responses];
+                return ["status" => "unknown", "data" => $responses];
             }
         } catch (Exception $e) {
             $responses[] = $e->getMessage();
