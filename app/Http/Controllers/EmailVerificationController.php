@@ -71,26 +71,25 @@ class EmailVerificationController extends Controller
         
             $responses = [];
             stream_set_timeout($connection, 10);
-        
-            // $initialResponse = '';
-            // $maxAttempts = 10; // Maximum attempts to wait for 220 response
-            // $attempt = 0;
-
-            // while ($attempt < $maxAttempts) {
-                $initialResponse = fgets($connection, 1024);
-            //     if ($initialResponse && strpos($initialResponse, '220') === 0) {
-            //         while (($initialLine = fgets($connection, 1024)) !== false) {
-            //             $responses[] = trim($initialLine);
-            //             if (strpos($initialLine, '220 ') === 0) break; // Stop when the last 250 response is received
-            //         }
-            //         break;
-            //     }
-            //     $attempt++;
-            // }
-  
-            // if (!$initialResponse || strpos($initialResponse, '220') !== 0) {
-            //     throw new Exception("Unexpected or no SMTP response: " . trim($initialResponse));
-            // }
+            // Read initial response
+            $initialResponse = fgets($connection, 1024);
+            // Check for 220 response
+            if (!$initialResponse || strpos($initialResponse, '220') !== 0) {
+                $initialResponse = '';
+                $maxAttempts = 10; // Maximum attempts to wait for 220 response
+                $attempt = 0;
+                while ($attempt < $maxAttempts) {
+                    $initialResponse = fgets($connection, 1024);
+                    if ($initialResponse && strpos($initialResponse, '220') === 0) {
+                        while (($initialLine = fgets($connection, 1024)) !== false) {
+                            $responses[] = trim($initialLine);
+                            if (strpos($initialLine, '220 ') === 0) break; // Stop when the last 250 response is received
+                        }
+                        break;
+                    }
+                    $attempt++;
+                }
+            }
 
             $responses[] = trim($initialResponse);
         
@@ -116,18 +115,9 @@ class EmailVerificationController extends Controller
 
             // Send RCPT TO
             fwrite($connection, "RCPT TO: <$email>\r\n");
-            // $rcptResponse = '';
-            // $maxAttempts = 10; // Maximum attempts to wait for 220 response
-            // $attempt = 0;
-
-            // while ($attempt < $maxAttempts) {
-                 $rcptResponse = fgets($connection, 1024);
-            //     if ($rcptResponse && strpos($rcptResponse, '250') !== false || strpos($rcptResponse, '550') !== false || strpos($rcptResponse, '450') !== false || strpos($rcptResponse, '451') !== false || strpos($rcptResponse, '452') !== false || strpos($rcptResponse, '421') !== false || strpos($rcptResponse, '550-5.1.1') !== false || strpos($rcptResponse, '550 5.1.1') !== false || strpos($rcptResponse, '550-5.2.1') !== false || strpos($rcptResponse, '550 #5.1.0') !== false || strpos($rcptResponse, '550 5.7.1') !== false || strpos($rcptResponse, '550 5.4.1') !== false) {
-            //         break;
-
-            //     }
-            //     $attempt++;
-            // }
+           
+            $rcptResponse = fgets($connection, 1024);
+           
             $acceptFlag = false;
             $responses[] = trim($rcptResponse);
 
