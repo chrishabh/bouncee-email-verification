@@ -142,7 +142,7 @@ class EmailVerificationController extends Controller
             fclose($connection);
 
             if($acceptFlag && strpos($acceptResponse, '250') !== false){
-                return ["status" => "⁠Accept all", "data" => $responses];
+                return ["status" => "Accept all", "data" => $responses];
             }
         
             // **Determine email status**
@@ -157,7 +157,7 @@ class EmailVerificationController extends Controller
             } elseif (strpos($rcptResponse, '421') !== false) {
                 return ["status" => "Undeliverable", "data" => $responses];
             } elseif (preg_match('/250.*catch/i', implode(" ", $responses))) {
-                return ["status" => "⁠Accept all", "data" => $responses];
+                return ["status" => "Accept all", "data" => $responses];
             }
             else {
                 return ["status" => "Unknown", "data" => $responses];
