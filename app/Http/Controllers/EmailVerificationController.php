@@ -74,6 +74,13 @@ class EmailVerificationController extends Controller
             // Read initial response
             $initialResponse = fgets($connection, 1024);
             // Check for 220 response
+            if ($initialResponse && strpos($initialResponse, '554') === 0) {
+                $responses[] = trim($initialResponse);
+                // Send QUIT
+                fwrite($connection, "QUIT\r\n");
+                fclose($connection);
+                return ["status" => "Unknown", "data" => $responses];
+            }
             if (!$initialResponse || strpos($initialResponse, '220') !== 0) {
                 $initialResponse = '';
                 $maxAttempts = 10; // Maximum attempts to wait for 220 response
@@ -135,29 +142,29 @@ class EmailVerificationController extends Controller
             fclose($connection);
 
             if($acceptFlag && strpos($acceptResponse, '250') !== false){
-                return ["status" => "accepted_all", "data" => $responses];
+                return ["status" => "⁠Accept all", "data" => $responses];
             }
         
             // **Determine email status**
             if (strpos($rcptResponse, '250') !== false) {
-                return ["status" => "deliverable", "data" => $responses];
+                return ["status" => "Deliverable", "data" => $responses];
             } elseif (strpos($rcptResponse, '550-5.1.1') !== false || strpos($rcptResponse, '550 5.1.1') !== false || strpos($rcptResponse, '550-5.2.1') !== false || strpos($rcptResponse, '550 #5.1.0') !== false || strpos($rcptResponse, '550') !== false) {
-                return ["status" => "undeliverable", "data" => $responses];
+                return ["status" => "Undeliverable", "data" => $responses];
             } elseif (strpos($rcptResponse, '550 5.7.1') !== false || strpos($rcptResponse, '550 5.4.1') !== false) {
-                return ["status" => "bounce", "data" => $responses];
+                return ["status" => "Bounce", "data" => $responses];
             } elseif (strpos($rcptResponse, '450') !== false || strpos($rcptResponse, '451') !== false || strpos($rcptResponse, '452') !== false) {
-                return ["status" => "unknown", "data" => $responses];
+                return ["status" => "Unknown", "data" => $responses];
             } elseif (strpos($rcptResponse, '421') !== false) {
-                return ["status" => "undeliverable", "data" => $responses];
+                return ["status" => "Undeliverable", "data" => $responses];
             } elseif (preg_match('/250.*catch/i', implode(" ", $responses))) {
-                return ["status" => "accepted_all", "data" => $responses];
+                return ["status" => "⁠Accept all", "data" => $responses];
             }
             else {
-                return ["status" => "unknown", "data" => $responses];
+                return ["status" => "Unknown", "data" => $responses];
             }
         } catch (Exception $e) {
             $responses[] = $e->getMessage();
-            return ["status" => "unknown", "data" => $responses];
+            return ["status" => "Unknown", "data" => $responses];
         }        
 
         
