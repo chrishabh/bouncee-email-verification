@@ -60,6 +60,57 @@ class EmailVerificationController extends Controller
         }
     }
 
+    public static function jobVerify($email)
+    {
+        $email = $email;
+
+        If(!$email){
+            return response()->json(['message' => 'Email is required'], 401);
+        }
+
+        // Validate email format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return response()->json(['email' => $email, 'status' => 'Invalid', 'reason' => 'Invalid email format'], 200);
+        }
+
+        // Extract domain
+        $domain = substr(strrchr($email, "@"), 1);
+
+        // Get MX records
+        try{
+            $mxRecords = dns_get_record($domain, DNS_MX);
+        }catch(Exception $e){
+            return response()->json(['email' => $email, 'status' => 'undeliverable','message' => $e->getMessage()], 200);
+        }
+
+        if (!$mxRecords) {
+            return response()->json(['email' => $email, 'status' => 'undeliverable', 'reason' => 'No MX records found'], 200);
+        }
+        
+        // Use the highest priority MX server
+        usort($mxRecords, function ($a, $b) {
+            return $a['pri'] - $b['pri'];
+        });
+        $mxServer = $mxRecords[0]['target'];
+
+        // Perform SMTP Handshake
+        $smtpResponse = $this->telnetsmtpHandshake($email, $mxServer, $domain);
+
+        if(isset($smtpResponse['status']) && isset($smtpResponse['data'])) {
+            return response()->json([
+                'email' => $email,
+                'mx-record' => $mxServer,
+                'status' => $smtpResponse['status'],
+                'reason' => $smtpResponse['data']
+            ],200);
+          
+        }else{
+            return response()->json([
+               'message' => $smtpResponse
+            ],401);
+        }
+    }
+
     public function publicBulkVerify(Request $request)
     {
         $email = $request->query('email');
@@ -329,5 +380,20 @@ class EmailVerificationController extends Controller
         }        
 
         
+    }
+
+    public function runJob(Request $request)
+    {
+        $fileId = $request->query('fileId');
+        $userId = $request->query('userId');
+
+        if (!$fileId || !$userId) {
+            return response()->json(['message' => 'File ID and User ID are required'], 401);
+        }
+
+        // Dispatch the job
+        \App\Jobs\BulkVerification::dispatch($fileId, $userId);
+
+        return response()->json(['message' => 'Job dispatched successfully'], 200);
     }
 }

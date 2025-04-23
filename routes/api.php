@@ -22,6 +22,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::middleware(['verification.api'])->group(function () {
     Route::get('/verify-email', [EmailVerificationController::class, 'verify']);
+    Route::get('/bulk-job', [EmailVerificationController::class, 'runJob']);
     Route::get('/public/bulk/verify-email', [EmailVerificationController::class, 'publicBulkVerify']);
 
 });
