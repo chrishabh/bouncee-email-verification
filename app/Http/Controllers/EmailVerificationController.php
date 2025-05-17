@@ -222,21 +222,21 @@ class EmailVerificationController extends Controller
             fwrite($connection, "MAIL FROM: <$fromEmail>\r\n");
             $mailFromResponse = fgets($connection, 1024);
             $responses[] = trim($mailFromResponse);
-
             // Send RCPT TO
-            fwrite($connection, "RCPT TO: <$email>\r\n");
-           
-            $rcptResponse = fgets($connection, 1024);
-           
-            $acceptFlag = false;
-            $responses[] = trim($rcptResponse);
+            $acceptEmail = 'example@'.$domain;
+            fwrite($connection, "RCPT TO: <$acceptEmail>\r\n");
+            $acceptResponse = fgets($connection, 1024);
+            $responses[] = trim($acceptResponse);
 
-            if (strpos($rcptResponse, '250') !== false) {
-                $acceptEmail = 'example@'.$domain;
-                fwrite($connection, "RCPT TO: <$acceptEmail>\r\n");
-                $acceptResponse = fgets($connection, 1024);
-                $responses[] = trim($acceptResponse);
+            if (strpos($acceptResponse, '250') !== false) {
+               
                 $acceptFlag = true;
+            }else{
+                $acceptFlag = false;
+                fwrite($connection, "RCPT TO: <$email>\r\n");
+           
+                $rcptResponse = fgets($connection, 1024);
+                $responses[] = trim($rcptResponse);
             }
 
 
