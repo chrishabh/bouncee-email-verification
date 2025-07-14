@@ -222,48 +222,59 @@ class EmailVerificationController extends Controller
             fwrite($connection, "MAIL FROM: <$fromEmail>\r\n");
             $mailFromResponse = fgets($connection, 1024);
             $responses[] = trim($mailFromResponse);
-            // Send RCPT TO
-            $acceptEmail = 'example@'.$domain;
+            // Step 1: Test for Catch-All with dummy email
+            $acceptEmail = 'example@' . $domain;
             fwrite($connection, "RCPT TO: <$acceptEmail>\r\n");
-            $acceptResponse = fgets($connection, 1024);
-            $responses[] = trim($acceptResponse);
-            fwrite($connection, "RCPT TO: <$email>\r\n");
 
-            if (strpos($acceptResponse, '250') !== false) {
-               
-                $acceptFlag = true;
-            }else{
-                $acceptFlag = false;
+            $acceptResponseLines = [];
+            do {
+                $line = fgets($connection, 1024);
+                if ($line === false) break;
+                $acceptResponseLines[] = trim($line);
+                $responses[] = trim($line);
+            } while (isset($line[3]) && $line[3] === '-');
+
+            $acceptResponse = implode(" ", $acceptResponseLines);
+            $acceptFlag = strpos($acceptResponse, '250') !== false;
+
+            // Step 2: Check actual email if catch-all is not enabled
+            $rcptResponse = '';
+            if (!$acceptFlag) {
                 fwrite($connection, "RCPT TO: <$email>\r\n");
-           
-                $rcptResponse = fgets($connection, 1024);
-                $responses[] = trim($rcptResponse);
-            }
 
+                $rcptResponseLines = [];
+                do {
+                    $line = fgets($connection, 1024);
+                    if ($line === false) break;
+                    $rcptResponseLines[] = trim($line);
+                    $responses[] = trim($line);
+                } while (isset($line[3]) && $line[3] === '-');
+
+                $rcptResponse = implode(" ", $rcptResponseLines);
+            }
 
             // Send QUIT
             fwrite($connection, "QUIT\r\n");
             fclose($connection);
 
-            if($acceptFlag && strpos($acceptResponse, '250') !== false){
+            // Step 3: Determine Status
+            if ($acceptFlag && strpos($acceptResponse, '250') !== false) {
                 return ["status" => "Accept all", "data" => $responses];
             }
-        
-            // **Determine email status**
+
             if (strpos($rcptResponse, '250') !== false) {
                 return ["status" => "Deliverable", "data" => $responses];
-            } elseif (strpos($rcptResponse, '550-5.1.1') !== false || strpos($rcptResponse, '550 5.1.1') !== false || strpos($rcptResponse, '550-5.2.1') !== false || strpos($rcptResponse, '550 #5.1.0') !== false || strpos($rcptResponse, '550') !== false) {
+            } elseif (preg_match('/550-(5\.1\.1|5\.2\.1)|550 5\.1\.1|550 #5\.1\.0|550\b/', $rcptResponse)) {
                 return ["status" => "Undeliverable", "data" => $responses];
             } elseif (strpos($rcptResponse, '550 5.7.1') !== false || strpos($rcptResponse, '550 5.4.1') !== false) {
                 return ["status" => "Bounce", "data" => $responses];
-            } elseif (strpos($rcptResponse, '450') !== false || strpos($rcptResponse, '451') !== false || strpos($rcptResponse, '452') !== false) {
+            } elseif (preg_match('/45[0-9]/', $rcptResponse)) {
                 return ["status" => "Unknown", "data" => $responses];
             } elseif (strpos($rcptResponse, '421') !== false) {
                 return ["status" => "Undeliverable", "data" => $responses];
             } elseif (preg_match('/250.*catch/i', implode(" ", $responses))) {
                 return ["status" => "Accept all", "data" => $responses];
-            }
-            else {
+            } else {
                 return ["status" => "Unknown", "data" => $responses];
             }
         } catch (Exception $e) {
