@@ -227,6 +227,7 @@ class EmailVerificationController extends Controller
             fwrite($connection, "RCPT TO: <$acceptEmail>\r\n");
             $acceptResponse = fgets($connection, 1024);
             $responses[] = trim($acceptResponse);
+            fwrite($connection, "RCPT TO: <$email>\r\n");
 
             if (strpos($acceptResponse, '250') !== false) {
                
